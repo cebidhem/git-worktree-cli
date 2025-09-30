@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ez-leaf"
+version = "0.1.0"
+description = "A lightweight Python script to simplify Git worktree management"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.1.0",
+]
+
+[project.scripts]
+ez-leaf = "ez_leaf.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ez_leaf*"]
+exclude = ["specs*"]

@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch, call
 
 import pytest
 
-from ez_leaf.worktree import (
+from wt.worktree import (
     WorktreeError,
     check_git_repo,
     get_repo_root,
@@ -65,7 +65,7 @@ class TestGetRootFolderName:
     def test_get_root_folder_name(self, mocker):
         """Test getting root folder name."""
         mocker.patch(
-            "ez_leaf.worktree.get_repo_root",
+            "wt.worktree.get_repo_root",
             return_value=Path("/path/to/myproject")
         )
         assert get_root_folder_name() == "myproject"
@@ -77,7 +77,7 @@ class TestGenerateWorktreePath:
     def test_generate_worktree_path(self, mocker):
         """Test generating worktree path."""
         mocker.patch(
-            "ez_leaf.worktree.get_repo_root",
+            "wt.worktree.get_repo_root",
             return_value=Path("/path/to/myproject")
         )
 
@@ -119,13 +119,13 @@ class TestCreateWorktree:
 
     def test_create_worktree_new_branch(self, mocker):
         """Test creating worktree with a new branch."""
-        mock_check_git = mocker.patch("ez_leaf.worktree.check_git_repo")
+        mock_check_git = mocker.patch("wt.worktree.check_git_repo")
         mock_generate_path = mocker.patch(
-            "ez_leaf.worktree.generate_worktree_path",
+            "wt.worktree.generate_worktree_path",
             return_value=Path("/path/to/myproject_feature-x")
         )
         mock_branch_exists = mocker.patch(
-            "ez_leaf.worktree.branch_exists",
+            "wt.worktree.branch_exists",
             return_value=False
         )
         mock_run = mocker.patch("subprocess.run", return_value=Mock(returncode=0))
@@ -143,12 +143,12 @@ class TestCreateWorktree:
 
     def test_create_worktree_existing_branch(self, mocker):
         """Test creating worktree with an existing branch."""
-        mocker.patch("ez_leaf.worktree.check_git_repo")
+        mocker.patch("wt.worktree.check_git_repo")
         mocker.patch(
-            "ez_leaf.worktree.generate_worktree_path",
+            "wt.worktree.generate_worktree_path",
             return_value=Path("/path/to/myproject_main")
         )
-        mocker.patch("ez_leaf.worktree.branch_exists", return_value=True)
+        mocker.patch("wt.worktree.branch_exists", return_value=True)
         mock_run = mocker.patch("subprocess.run", return_value=Mock(returncode=0))
 
         result = create_worktree("main")
@@ -159,11 +159,11 @@ class TestCreateWorktree:
 
     def test_create_worktree_path_exists(self, mocker, tmp_path):
         """Test creating worktree when path already exists."""
-        mocker.patch("ez_leaf.worktree.check_git_repo")
+        mocker.patch("wt.worktree.check_git_repo")
         existing_path = tmp_path / "existing"
         existing_path.mkdir()
         mocker.patch(
-            "ez_leaf.worktree.generate_worktree_path",
+            "wt.worktree.generate_worktree_path",
             return_value=existing_path
         )
 
@@ -172,12 +172,12 @@ class TestCreateWorktree:
 
     def test_create_worktree_git_failure(self, mocker):
         """Test creating worktree when git command fails."""
-        mocker.patch("ez_leaf.worktree.check_git_repo")
+        mocker.patch("wt.worktree.check_git_repo")
         mocker.patch(
-            "ez_leaf.worktree.generate_worktree_path",
+            "wt.worktree.generate_worktree_path",
             return_value=Path("/path/to/myproject_feature-x")
         )
-        mocker.patch("ez_leaf.worktree.branch_exists", return_value=False)
+        mocker.patch("wt.worktree.branch_exists", return_value=False)
         mocker.patch(
             "subprocess.run",
             side_effect=subprocess.CalledProcessError(1, "git", stderr="error message")
@@ -192,7 +192,7 @@ class TestListWorktrees:
 
     def test_list_worktrees_success(self, mocker):
         """Test listing worktrees successfully."""
-        mocker.patch("ez_leaf.worktree.check_git_repo")
+        mocker.patch("wt.worktree.check_git_repo")
         mock_result = Mock()
         mock_result.stdout = (
             "worktree /path/to/main\n"
@@ -218,7 +218,7 @@ class TestListWorktrees:
 
     def test_list_worktrees_empty(self, mocker):
         """Test listing when no worktrees exist."""
-        mocker.patch("ez_leaf.worktree.check_git_repo")
+        mocker.patch("wt.worktree.check_git_repo")
         mock_result = Mock()
         mock_result.stdout = ""
         mocker.patch("subprocess.run", return_value=mock_result)
@@ -232,7 +232,7 @@ class TestDeleteWorktree:
 
     def test_delete_worktree_success(self, mocker):
         """Test deleting worktree successfully."""
-        mocker.patch("ez_leaf.worktree.check_git_repo")
+        mocker.patch("wt.worktree.check_git_repo")
         mock_run = mocker.patch("subprocess.run", return_value=Mock(returncode=0))
 
         delete_worktree("/path/to/worktree")
@@ -243,7 +243,7 @@ class TestDeleteWorktree:
 
     def test_delete_worktree_force(self, mocker):
         """Test deleting worktree with force flag."""
-        mocker.patch("ez_leaf.worktree.check_git_repo")
+        mocker.patch("wt.worktree.check_git_repo")
         mock_run = mocker.patch("subprocess.run", return_value=Mock(returncode=0))
 
         delete_worktree("/path/to/worktree", force=True)
@@ -253,7 +253,7 @@ class TestDeleteWorktree:
 
     def test_delete_worktree_failure(self, mocker):
         """Test deleting worktree when command fails."""
-        mocker.patch("ez_leaf.worktree.check_git_repo")
+        mocker.patch("wt.worktree.check_git_repo")
         mocker.patch(
             "subprocess.run",
             side_effect=subprocess.CalledProcessError(1, "git", stderr="error")

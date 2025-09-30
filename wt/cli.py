@@ -1,4 +1,4 @@
-"""Command-line interface for ez-leaf."""
+"""Command-line interface for git-worktree-cli."""
 
 import sys
 from typing import Optional
@@ -24,13 +24,13 @@ class Mode(str, Enum):
     ide = "ide"
 
 
-app = typer.Typer(help="ez-leaf: A lightweight Python script to simplify Git worktree management.")
+app = typer.Typer(help="git-worktree-cli: A lightweight Python CLI tool to simplify Git worktree management.")
 
 
 def version_callback(value: bool):
     """Print version and exit."""
     if value:
-        typer.echo(f"ez-leaf version {__version__}")
+        typer.echo(f"git-worktree-cli version {__version__}")
         raise typer.Exit()
 
 
@@ -38,7 +38,7 @@ def version_callback(value: bool):
 def main(
     version: Annotated[Optional[bool], typer.Option("--version", callback=version_callback, help="Show version and exit.")] = None,
 ):
-    """ez-leaf: A lightweight Python script to simplify Git worktree management."""
+    """git-worktree-cli: A lightweight Python CLI tool to simplify Git worktree management."""
     pass
 
 

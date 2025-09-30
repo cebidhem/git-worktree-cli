@@ -1,10 +1,10 @@
-# ez-leaf
+# git-worktree-cli
 
 A lightweight Python CLI tool to simplify Git worktree management.
 
 ## Overview
 
-`ez-leaf` makes working with Git worktrees effortless by providing an intuitive command-line interface for creating, listing, and deleting worktrees. It automatically generates consistent paths and can optionally open new worktrees in your IDE or terminal.
+`wt` makes working with Git worktrees effortless by providing an intuitive command-line interface for creating, listing, and deleting worktrees. It automatically generates consistent paths and can optionally open new worktrees in your IDE or terminal.
 
 ## Features
 
@@ -22,8 +22,8 @@ A lightweight Python CLI tool to simplify Git worktree management.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/ez-leaf.git
-cd ez-leaf
+git clone https://github.com/yourusername/git-worktree-cli.git
+cd git-worktree-cli
 
 # Install in development mode
 pip install -e .
@@ -35,7 +35,7 @@ pip install -e ".[dev]"
 ### Verify Installation
 
 ```bash
-ezl --version
+wt --version
 ```
 
 ## Usage
@@ -46,17 +46,17 @@ Create a new worktree for a branch:
 
 ```bash
 # Basic usage - creates worktree only
-ezl create feature-x
-# Creates: ../ez-leaf_feature-x
+wt create feature-x
+# Creates: ../git-worktree-cli_feature-x
 
 # Create and open in terminal (iTerm2 on macOS)
-ezl create feature-y --mode terminal
+wt create feature-y --mode terminal
 
 # Create and open in VS Code
-ezl create feature-z --mode ide --ide code
+wt create feature-z --mode ide --ide code
 
 # Create and open in default IDE (auto-detects: code, cursor, pycharm, subl, atom)
-ezl create feature-w --mode ide
+wt create feature-w --mode ide
 ```
 
 **Path Generation**: Worktrees are created at `../<root_folder_name>_<branch_name>`
@@ -68,7 +68,7 @@ ezl create feature-w --mode ide
 Display all worktrees in the repository:
 
 ```bash
-ezl list
+wt list
 ```
 
 Example output:
@@ -85,10 +85,10 @@ Remove a worktree:
 
 ```bash
 # Delete a worktree
-ezl delete /path/to/worktree
+wt delete /path/to/worktree
 
 # Force delete (even with uncommitted changes)
-ezl delete /path/to/worktree --force
+wt delete /path/to/worktree --force
 ```
 
 ## Modes
@@ -99,7 +99,7 @@ The `create` command supports three modes via the `--mode` option:
 Creates the worktree without any additional action.
 
 ```bash
-ezl create feature-x
+wt create feature-x
 ```
 
 ### `terminal`
@@ -117,12 +117,12 @@ Creates the worktree and opens it in an IDE.
 
 ```bash
 # Specify IDE explicitly
-ezl create feature-x --mode ide --ide code      # VS Code
-ezl create feature-x --mode ide --ide cursor    # Cursor
-ezl create feature-x --mode ide --ide pycharm   # PyCharm
+wt create feature-x --mode ide --ide code      # VS Code
+wt create feature-x --mode ide --ide cursor    # Cursor
+wt create feature-x --mode ide --ide pycharm   # PyCharm
 
 # Auto-detect IDE (tries: code, cursor, pycharm, subl, atom)
-ezl create feature-x --mode ide
+wt create feature-x --mode ide
 ```
 
 ## Examples
@@ -131,32 +131,32 @@ ezl create feature-x --mode ide
 
 ```bash
 # Create a new worktree for a feature branch and open in VS Code
-ezl create feature/auth-system --mode ide --ide code
+wt create feature/auth-system --mode ide --ide code
 
 # Work on the feature...
 cd ../myproject_feature/auth-system
 
 # When done, delete the worktree
-ezl delete /path/to/myproject_feature/auth-system
+wt delete /path/to/myproject_feature/auth-system
 ```
 
 ### Quick bug fix
 
 ```bash
 # Create worktree for hotfix
-ezl create hotfix/urgent-bug
+wt create hotfix/urgent-bug
 
 # Work on the fix in the new location
 cd ../myproject_hotfix/urgent-bug
 
 # After merging, clean up
-ezl delete ../myproject_hotfix/urgent-bug
+wt delete ../myproject_hotfix/urgent-bug
 ```
 
 ### Review all active worktrees
 
 ```bash
-ezl list
+wt list
 ```
 
 ## Requirements
@@ -186,10 +186,10 @@ pytest tests/test_worktree.py -v
 ### Project Structure
 
 ```
-ez-leaf/
-├── ez_leaf/
+git-worktree-cli/
+├── wt/
 │   ├── __init__.py        # Package initialization
-│   ├── __main__.py        # Entry point for python -m ez_leaf
+│   ├── __main__.py        # Entry point for python -m wt
 │   ├── cli.py             # CLI commands and interface
 │   ├── worktree.py        # Core worktree operations
 │   └── launchers.py       # IDE and terminal launchers
@@ -204,7 +204,7 @@ ez-leaf/
 ## Troubleshooting
 
 ### "Not a git repository" error
-Make sure you're running `ezl` from within a Git repository.
+Make sure you're running `wt` from within a Git repository.
 
 ### IDE not launching
 Ensure the IDE executable is in your PATH:

@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from ez_leaf.launchers import (
+from wt.launchers import (
     LauncherError,
     launch_ide,
     launch_terminal,
@@ -39,7 +39,7 @@ class TestLaunchIDE:
     def test_launch_ide_with_executable(self, mocker, tmp_path):
         """Test launching IDE with specified executable."""
         mock_exists = mocker.patch(
-            "ez_leaf.launchers._command_exists",
+            "wt.launchers._command_exists",
             return_value=True
         )
         mock_run = mocker.patch("subprocess.run", return_value=Mock(returncode=0))
@@ -59,7 +59,7 @@ class TestLaunchIDE:
             return cmd == "cursor"
 
         mocker.patch(
-            "ez_leaf.launchers._command_exists",
+            "wt.launchers._command_exists",
             side_effect=command_exists_side_effect
         )
         mock_run = mocker.patch("subprocess.run", return_value=Mock(returncode=0))
@@ -73,21 +73,21 @@ class TestLaunchIDE:
 
     def test_launch_ide_no_default_found(self, mocker, tmp_path):
         """Test launching IDE when no default is found."""
-        mocker.patch("ez_leaf.launchers._command_exists", return_value=False)
+        mocker.patch("wt.launchers._command_exists", return_value=False)
 
         with pytest.raises(LauncherError, match="No IDE specified"):
             launch_ide(tmp_path, None)
 
     def test_launch_ide_not_found(self, mocker, tmp_path):
         """Test launching IDE when executable doesn't exist."""
-        mocker.patch("ez_leaf.launchers._command_exists", return_value=False)
+        mocker.patch("wt.launchers._command_exists", return_value=False)
 
         with pytest.raises(LauncherError, match="not found"):
             launch_ide(tmp_path, "nonexistent")
 
     def test_launch_ide_failure(self, mocker, tmp_path):
         """Test launching IDE when command fails."""
-        mocker.patch("ez_leaf.launchers._command_exists", return_value=True)
+        mocker.patch("wt.launchers._command_exists", return_value=True)
         mocker.patch(
             "subprocess.run",
             side_effect=subprocess.CalledProcessError(1, "code")
@@ -103,7 +103,7 @@ class TestLaunchTerminal:
     def test_launch_terminal_macos(self, mocker, tmp_path):
         """Test launching terminal on macOS."""
         mocker.patch("platform.system", return_value="Darwin")
-        mock_launch_iterm2 = mocker.patch("ez_leaf.launchers._launch_iterm2")
+        mock_launch_iterm2 = mocker.patch("wt.launchers._launch_iterm2")
 
         launch_terminal(tmp_path)
 
@@ -158,7 +158,7 @@ class TestHandleMode:
 
     def test_handle_mode_terminal(self, mocker, tmp_path):
         """Test handle_mode with mode='terminal'."""
-        mock_launch_terminal = mocker.patch("ez_leaf.launchers.launch_terminal")
+        mock_launch_terminal = mocker.patch("wt.launchers.launch_terminal")
 
         handle_mode("terminal", tmp_path)
 
@@ -166,7 +166,7 @@ class TestHandleMode:
 
     def test_handle_mode_ide(self, mocker, tmp_path):
         """Test handle_mode with mode='ide'."""
-        mock_launch_ide = mocker.patch("ez_leaf.launchers.launch_ide")
+        mock_launch_ide = mocker.patch("wt.launchers.launch_ide")
 
         handle_mode("ide", tmp_path, "code")
 

@@ -1,6 +1,5 @@
 """Command-line interface for git-worktree-cli."""
 
-import sys
 from typing import Optional
 from enum import Enum
 
@@ -19,12 +18,15 @@ from .launchers import LauncherError, handle_mode
 
 class Mode(str, Enum):
     """Operation modes for worktree creation."""
-    none = "none"
-    terminal = "terminal"
-    ide = "ide"
+
+    NONE = "none"
+    TERMINAL = "terminal"
+    IDE = "ide"
 
 
-app = typer.Typer(help="git-worktree-cli: A lightweight Python CLI tool to simplify Git worktree management.")
+app = typer.Typer(
+    help="git-worktree-cli: A lightweight Python CLI tool to simplify Git worktree management."
+)
 
 
 def version_callback(value: bool):
@@ -36,17 +38,28 @@ def version_callback(value: bool):
 
 @app.callback()
 def main(
-    version: Annotated[Optional[bool], typer.Option("--version", callback=version_callback, help="Show version and exit.")] = None,
+    _version: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--version", callback=version_callback, help="Show version and exit."
+        ),
+    ] = None,
 ):
     """git-worktree-cli: A lightweight Python CLI tool to simplify Git worktree management."""
-    pass
 
 
 @app.command()
 def create(
     branch: Annotated[str, typer.Argument(help="Branch name to create worktree for")],
-    mode: Annotated[Mode, typer.Option(help="Operation mode after creating worktree")] = Mode.none,
-    ide: Annotated[Optional[str], typer.Option(help="IDE executable name (e.g., code, pycharm, cursor). Used when mode=ide.")] = None,
+    mode: Annotated[
+        Mode, typer.Option(help="Operation mode after creating worktree")
+    ] = Mode.NONE,
+    ide: Annotated[
+        Optional[str],
+        typer.Option(
+            help="IDE executable name (e.g., code, pycharm, cursor). Used when mode=ide."
+        ),
+    ] = None,
 ):
     """Create a new git worktree for BRANCH.
 
@@ -78,8 +91,8 @@ def create(
         raise typer.Exit(code=1)
 
 
-@app.command()
-def list():
+@app.command(name="list")
+def list_cmd():
     """List all git worktrees in the repository."""
     try:
         worktrees = list_worktrees()
@@ -94,9 +107,9 @@ def list():
 
         # Print each worktree
         for wt in worktrees:
-            path = wt.get('path', 'N/A')
-            branch = wt.get('branch', 'N/A')
-            commit = wt.get('commit', 'N/A')
+            path = wt.get("path", "N/A")
+            branch = wt.get("branch", "N/A")
+            commit = wt.get("commit", "N/A")
             typer.echo(f"{path:<50} {branch:<30} {commit:<10}")
 
     except WorktreeError as e:
@@ -107,7 +120,12 @@ def list():
 @app.command()
 def delete(
     path: Annotated[str, typer.Argument(help="Path to the worktree to delete")],
-    force: Annotated[bool, typer.Option("--force", "-f", help="Force deletion even with uncommitted changes")] = False,
+    force: Annotated[
+        bool,
+        typer.Option(
+            "--force", "-f", help="Force deletion even with uncommitted changes"
+        ),
+    ] = False,
 ):
     """Delete a git worktree at PATH.
 

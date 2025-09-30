@@ -2,7 +2,7 @@
 
 import subprocess
 from pathlib import Path
-from unittest.mock import Mock, patch, call
+from unittest.mock import Mock
 
 import pytest
 
@@ -30,8 +30,7 @@ class TestCheckGitRepo:
     def test_not_git_repo(self, mocker):
         """Test checking when not in a git repository."""
         mocker.patch(
-            "subprocess.run",
-            side_effect=subprocess.CalledProcessError(1, "git")
+            "subprocess.run", side_effect=subprocess.CalledProcessError(1, "git")
         )
         with pytest.raises(WorktreeError, match="Not a git repository"):
             check_git_repo()
@@ -53,7 +52,7 @@ class TestGetRepoRoot:
         """Test getting repository root when command fails."""
         mocker.patch(
             "subprocess.run",
-            side_effect=subprocess.CalledProcessError(1, "git", stderr="error")
+            side_effect=subprocess.CalledProcessError(1, "git", stderr="error"),
         )
         with pytest.raises(WorktreeError, match="Failed to get repository root"):
             get_repo_root()
@@ -65,8 +64,7 @@ class TestGetRootFolderName:
     def test_get_root_folder_name(self, mocker):
         """Test getting root folder name."""
         mocker.patch(
-            "wt.worktree.get_repo_root",
-            return_value=Path("/path/to/myproject")
+            "wt.worktree.get_repo_root", return_value=Path("/path/to/myproject")
         )
         assert get_root_folder_name() == "myproject"
 
@@ -77,8 +75,7 @@ class TestGenerateWorktreePath:
     def test_generate_worktree_path(self, mocker):
         """Test generating worktree path."""
         mocker.patch(
-            "wt.worktree.get_repo_root",
-            return_value=Path("/path/to/myproject")
+            "wt.worktree.get_repo_root", return_value=Path("/path/to/myproject")
         )
 
         result = generate_worktree_path("feature-x")
@@ -98,18 +95,14 @@ class TestBranchExists:
         # First call (local) fails, second call (remote) succeeds
         mocker.patch(
             "subprocess.run",
-            side_effect=[
-                subprocess.CalledProcessError(1, "git"),
-                Mock(returncode=0)
-            ]
+            side_effect=[subprocess.CalledProcessError(1, "git"), Mock(returncode=0)],
         )
         assert branch_exists("feature-x") is True
 
     def test_branch_does_not_exist(self, mocker):
         """Test when branch doesn't exist."""
         mocker.patch(
-            "subprocess.run",
-            side_effect=subprocess.CalledProcessError(1, "git")
+            "subprocess.run", side_effect=subprocess.CalledProcessError(1, "git")
         )
         assert branch_exists("nonexistent") is False
 
@@ -120,13 +113,12 @@ class TestCreateWorktree:
     def test_create_worktree_new_branch(self, mocker):
         """Test creating worktree with a new branch."""
         mock_check_git = mocker.patch("wt.worktree.check_git_repo")
-        mock_generate_path = mocker.patch(
+        mocker.patch(
             "wt.worktree.generate_worktree_path",
-            return_value=Path("/path/to/myproject_feature-x")
+            return_value=Path("/path/to/myproject_feature-x"),
         )
         mock_branch_exists = mocker.patch(
-            "wt.worktree.branch_exists",
-            return_value=False
+            "wt.worktree.branch_exists", return_value=False
         )
         mock_run = mocker.patch("subprocess.run", return_value=Mock(returncode=0))
 
@@ -146,7 +138,7 @@ class TestCreateWorktree:
         mocker.patch("wt.worktree.check_git_repo")
         mocker.patch(
             "wt.worktree.generate_worktree_path",
-            return_value=Path("/path/to/myproject_main")
+            return_value=Path("/path/to/myproject_main"),
         )
         mocker.patch("wt.worktree.branch_exists", return_value=True)
         mock_run = mocker.patch("subprocess.run", return_value=Mock(returncode=0))
@@ -162,10 +154,7 @@ class TestCreateWorktree:
         mocker.patch("wt.worktree.check_git_repo")
         existing_path = tmp_path / "existing"
         existing_path.mkdir()
-        mocker.patch(
-            "wt.worktree.generate_worktree_path",
-            return_value=existing_path
-        )
+        mocker.patch("wt.worktree.generate_worktree_path", return_value=existing_path)
 
         with pytest.raises(WorktreeError, match="Path already exists"):
             create_worktree("feature-x")
@@ -175,12 +164,12 @@ class TestCreateWorktree:
         mocker.patch("wt.worktree.check_git_repo")
         mocker.patch(
             "wt.worktree.generate_worktree_path",
-            return_value=Path("/path/to/myproject_feature-x")
+            return_value=Path("/path/to/myproject_feature-x"),
         )
         mocker.patch("wt.worktree.branch_exists", return_value=False)
         mocker.patch(
             "subprocess.run",
-            side_effect=subprocess.CalledProcessError(1, "git", stderr="error message")
+            side_effect=subprocess.CalledProcessError(1, "git", stderr="error message"),
         )
 
         with pytest.raises(WorktreeError, match="Failed to create worktree"):
@@ -224,7 +213,7 @@ class TestListWorktrees:
         mocker.patch("subprocess.run", return_value=mock_result)
 
         result = list_worktrees()
-        assert result == []
+        assert not result
 
 
 class TestDeleteWorktree:
@@ -256,7 +245,7 @@ class TestDeleteWorktree:
         mocker.patch("wt.worktree.check_git_repo")
         mocker.patch(
             "subprocess.run",
-            side_effect=subprocess.CalledProcessError(1, "git", stderr="error")
+            side_effect=subprocess.CalledProcessError(1, "git", stderr="error"),
         )
 
         with pytest.raises(WorktreeError, match="Failed to delete worktree"):

@@ -1,6 +1,5 @@
 """Launchers for opening worktrees in IDEs or terminal."""
 
-import os
 import platform
 import subprocess
 from pathlib import Path
@@ -9,7 +8,6 @@ from typing import Optional
 
 class LauncherError(Exception):
     """Base exception for launcher operations."""
-    pass
 
 
 def launch_ide(worktree_path: Path, ide_executable: Optional[str] = None) -> None:
@@ -25,7 +23,7 @@ def launch_ide(worktree_path: Path, ide_executable: Optional[str] = None) -> Non
     """
     if ide_executable is None:
         # Try to detect common IDEs
-        common_ides = ['code', 'cursor', 'pycharm', 'subl', 'atom']
+        common_ides = ["code", "cursor", "pycharm", "subl", "atom"]
         for ide in common_ides:
             if _command_exists(ide):
                 ide_executable = ide
@@ -45,13 +43,11 @@ def launch_ide(worktree_path: Path, ide_executable: Optional[str] = None) -> Non
 
     try:
         subprocess.run(
-            [ide_executable, str(worktree_path)],
-            check=True,
-            capture_output=True
+            [ide_executable, str(worktree_path)], check=True, capture_output=True
         )
         print(f"Opened {worktree_path} in {ide_executable}")
     except subprocess.CalledProcessError as e:
-        raise LauncherError(f"Failed to launch IDE: {e}")
+        raise LauncherError(f"Failed to launch IDE: {e}") from e
 
 
 def launch_terminal(worktree_path: Path) -> None:
@@ -86,7 +82,7 @@ def _launch_iterm2(worktree_path: Path) -> None:
         LauncherError: If launching iTerm2 fails.
     """
     # AppleScript to open a new iTerm2 tab and cd to the worktree path
-    applescript = f'''
+    applescript = f"""
     tell application "iTerm"
         tell current window
             create tab with default profile
@@ -95,18 +91,15 @@ def _launch_iterm2(worktree_path: Path) -> None:
             end tell
         end tell
     end tell
-    '''
+    """
 
     try:
         subprocess.run(
-            ["osascript", "-e", applescript],
-            check=True,
-            capture_output=True,
-            text=True
+            ["osascript", "-e", applescript], check=True, capture_output=True, text=True
         )
         print(f"Opened new iTerm2 tab at {worktree_path}")
     except subprocess.CalledProcessError as e:
-        raise LauncherError(f"Failed to launch iTerm2: {e.stderr}")
+        raise LauncherError(f"Failed to launch iTerm2: {e.stderr}") from e
 
 
 def _command_exists(command: str) -> bool:
@@ -119,17 +112,15 @@ def _command_exists(command: str) -> bool:
         bool: True if command exists, False otherwise.
     """
     try:
-        subprocess.run(
-            ["which", command],
-            check=True,
-            capture_output=True
-        )
+        subprocess.run(["which", command], check=True, capture_output=True)
         return True
     except subprocess.CalledProcessError:
         return False
 
 
-def handle_mode(mode: str, worktree_path: Path, ide_executable: Optional[str] = None) -> None:
+def handle_mode(
+    mode: str, worktree_path: Path, ide_executable: Optional[str] = None
+) -> None:
     """Handle the specified mode after worktree creation.
 
     Args:

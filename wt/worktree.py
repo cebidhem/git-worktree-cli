@@ -1,6 +1,5 @@
 """Core git worktree operations."""
 
-import os
 import subprocess
 from pathlib import Path
 from typing import Optional
@@ -8,7 +7,6 @@ from typing import Optional
 
 class WorktreeError(Exception):
     """Base exception for worktree operations."""
-    pass
 
 
 def check_git_repo() -> None:
@@ -22,10 +20,12 @@ def check_git_repo() -> None:
             ["git", "rev-parse", "--git-dir"],
             check=True,
             capture_output=True,
-            text=True
+            text=True,
         )
-    except subprocess.CalledProcessError:
-        raise WorktreeError("Not a git repository. Please run ez-leaf from within a git repository.")
+    except subprocess.CalledProcessError as e:
+        raise WorktreeError(
+            "Not a git repository. Please run ez-leaf from within a git repository."
+        ) from e
 
 
 def get_repo_root() -> Path:
@@ -42,11 +42,11 @@ def get_repo_root() -> Path:
             ["git", "rev-parse", "--show-toplevel"],
             check=True,
             capture_output=True,
-            text=True
+            text=True,
         )
         return Path(result.stdout.strip())
     except subprocess.CalledProcessError as e:
-        raise WorktreeError(f"Failed to get repository root: {e.stderr}")
+        raise WorktreeError(f"Failed to get repository root: {e.stderr}") from e
 
 
 def get_root_folder_name() -> str:
@@ -92,7 +92,7 @@ def branch_exists(branch: str) -> bool:
             ["git", "rev-parse", "--verify", branch],
             check=True,
             capture_output=True,
-            text=True
+            text=True,
         )
         return True
     except subprocess.CalledProcessError:
@@ -102,7 +102,7 @@ def branch_exists(branch: str) -> bool:
                 ["git", "rev-parse", "--verify", f"origin/{branch}"],
                 check=True,
                 capture_output=True,
-                text=True
+                text=True,
             )
             return True
         except subprocess.CalledProcessError:
@@ -138,7 +138,7 @@ def create_worktree(branch: str, path: Optional[Path] = None) -> Path:
                 ["git", "worktree", "add", str(path), branch],
                 check=True,
                 capture_output=True,
-                text=True
+                text=True,
             )
         else:
             # Create new branch with -b flag
@@ -146,12 +146,12 @@ def create_worktree(branch: str, path: Optional[Path] = None) -> Path:
                 ["git", "worktree", "add", "-b", branch, str(path)],
                 check=True,
                 capture_output=True,
-                text=True
+                text=True,
             )
 
         return path.absolute()
     except subprocess.CalledProcessError as e:
-        raise WorktreeError(f"Failed to create worktree: {e.stderr}")
+        raise WorktreeError(f"Failed to create worktree: {e.stderr}") from e
 
 
 def list_worktrees() -> list[dict[str, str]]:
@@ -171,20 +171,24 @@ def list_worktrees() -> list[dict[str, str]]:
             ["git", "worktree", "list", "--porcelain"],
             check=True,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         worktrees = []
         current_worktree = {}
 
-        for line in result.stdout.strip().split('\n'):
-            if line.startswith('worktree '):
-                current_worktree['path'] = line.split(' ', 1)[1]
-            elif line.startswith('HEAD '):
-                current_worktree['commit'] = line.split(' ', 1)[1][:7]  # Short commit hash
-            elif line.startswith('branch '):
-                current_worktree['branch'] = line.split('/')[-1]  # Get branch name from refs/heads/branch
-            elif line == '' and current_worktree:
+        for line in result.stdout.strip().split("\n"):
+            if line.startswith("worktree "):
+                current_worktree["path"] = line.split(" ", 1)[1]
+            elif line.startswith("HEAD "):
+                current_worktree["commit"] = line.split(" ", 1)[1][
+                    :7
+                ]  # Short commit hash
+            elif line.startswith("branch "):
+                current_worktree["branch"] = line.split("/")[
+                    -1
+                ]  # Get branch name from refs/heads/branch
+            elif line == "" and current_worktree:
                 worktrees.append(current_worktree)
                 current_worktree = {}
 
@@ -194,7 +198,7 @@ def list_worktrees() -> list[dict[str, str]]:
 
         return worktrees
     except subprocess.CalledProcessError as e:
-        raise WorktreeError(f"Failed to list worktrees: {e.stderr}")
+        raise WorktreeError(f"Failed to list worktrees: {e.stderr}") from e
 
 
 def delete_worktree(path: str, force: bool = False) -> None:
@@ -214,11 +218,6 @@ def delete_worktree(path: str, force: bool = False) -> None:
         if force:
             cmd.append("--force")
 
-        subprocess.run(
-            cmd,
-            check=True,
-            capture_output=True,
-            text=True
-        )
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
     except subprocess.CalledProcessError as e:
-        raise WorktreeError(f"Failed to delete worktree: {e.stderr}")
+        raise WorktreeError(f"Failed to delete worktree: {e.stderr}") from e

@@ -1,8 +1,7 @@
 """Tests for launcher operations."""
 
 import subprocess
-from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
@@ -27,8 +26,7 @@ class TestCommandExists:
     def test_command_does_not_exist(self, mocker):
         """Test when command doesn't exist."""
         mocker.patch(
-            "subprocess.run",
-            side_effect=subprocess.CalledProcessError(1, "which")
+            "subprocess.run", side_effect=subprocess.CalledProcessError(1, "which")
         )
         assert _command_exists("nonexistent") is False
 
@@ -38,10 +36,7 @@ class TestLaunchIDE:
 
     def test_launch_ide_with_executable(self, mocker, tmp_path):
         """Test launching IDE with specified executable."""
-        mock_exists = mocker.patch(
-            "wt.launchers._command_exists",
-            return_value=True
-        )
+        mock_exists = mocker.patch("wt.launchers._command_exists", return_value=True)
         mock_run = mocker.patch("subprocess.run", return_value=Mock(returncode=0))
         mock_print = mocker.patch("builtins.print")
 
@@ -55,12 +50,12 @@ class TestLaunchIDE:
 
     def test_launch_ide_auto_detect(self, mocker, tmp_path):
         """Test launching IDE with auto-detection."""
+
         def command_exists_side_effect(cmd):
             return cmd == "cursor"
 
         mocker.patch(
-            "wt.launchers._command_exists",
-            side_effect=command_exists_side_effect
+            "wt.launchers._command_exists", side_effect=command_exists_side_effect
         )
         mock_run = mocker.patch("subprocess.run", return_value=Mock(returncode=0))
         mocker.patch("builtins.print")
@@ -89,8 +84,7 @@ class TestLaunchIDE:
         """Test launching IDE when command fails."""
         mocker.patch("wt.launchers._command_exists", return_value=True)
         mocker.patch(
-            "subprocess.run",
-            side_effect=subprocess.CalledProcessError(1, "code")
+            "subprocess.run", side_effect=subprocess.CalledProcessError(1, "code")
         )
 
         with pytest.raises(LauncherError, match="Failed to launch IDE"):
@@ -137,7 +131,7 @@ class TestLaunchITerm2:
         """Test launching iTerm2 when command fails."""
         mocker.patch(
             "subprocess.run",
-            side_effect=subprocess.CalledProcessError(1, "osascript", stderr="error")
+            side_effect=subprocess.CalledProcessError(1, "osascript", stderr="error"),
         )
 
         with pytest.raises(LauncherError, match="Failed to launch iTerm2"):
@@ -172,7 +166,7 @@ class TestHandleMode:
 
         mock_launch_ide.assert_called_once_with(tmp_path, "code")
 
-    def test_handle_mode_unknown(self, mocker, tmp_path):
+    def test_handle_mode_unknown(self, tmp_path):
         """Test handle_mode with unknown mode."""
         with pytest.raises(LauncherError, match="Unknown mode"):
             handle_mode("invalid", tmp_path)

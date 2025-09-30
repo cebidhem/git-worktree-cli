@@ -35,7 +35,7 @@ pip install -e ".[dev]"
 ### Verify Installation
 
 ```bash
-ez-leaf --version
+ezl --version
 ```
 
 ## Usage
@@ -46,17 +46,17 @@ Create a new worktree for a branch:
 
 ```bash
 # Basic usage - creates worktree only
-ez-leaf create feature-x
+ezl create feature-x
 # Creates: ../ez-leaf_feature-x
 
 # Create and open in terminal (iTerm2 on macOS)
-ez-leaf create feature-y --mode terminal
+ezl create feature-y --mode terminal
 
 # Create and open in VS Code
-ez-leaf create feature-z --mode ide --ide code
+ezl create feature-z --mode ide --ide code
 
 # Create and open in default IDE (auto-detects: code, cursor, pycharm, subl, atom)
-ez-leaf create feature-w --mode ide
+ezl create feature-w --mode ide
 ```
 
 **Path Generation**: Worktrees are created at `../<root_folder_name>_<branch_name>`
@@ -68,7 +68,7 @@ ez-leaf create feature-w --mode ide
 Display all worktrees in the repository:
 
 ```bash
-ez-leaf list
+ezl list
 ```
 
 Example output:
@@ -85,10 +85,10 @@ Remove a worktree:
 
 ```bash
 # Delete a worktree
-ez-leaf delete /path/to/worktree
+ezl delete /path/to/worktree
 
 # Force delete (even with uncommitted changes)
-ez-leaf delete /path/to/worktree --force
+ezl delete /path/to/worktree --force
 ```
 
 ## Modes
@@ -99,7 +99,7 @@ The `create` command supports three modes via the `--mode` option:
 Creates the worktree without any additional action.
 
 ```bash
-ez-leaf create feature-x
+ezl create feature-x
 ```
 
 ### `terminal`
@@ -109,7 +109,7 @@ Creates the worktree and opens a new terminal tab at that location.
 - macOS: Opens new iTerm2 tab
 
 ```bash
-ez-leaf create feature-x --mode terminal
+ezl create feature-x --mode terminal
 ```
 
 ### `ide`
@@ -117,12 +117,12 @@ Creates the worktree and opens it in an IDE.
 
 ```bash
 # Specify IDE explicitly
-ez-leaf create feature-x --mode ide --ide code      # VS Code
-ez-leaf create feature-x --mode ide --ide cursor    # Cursor
-ez-leaf create feature-x --mode ide --ide pycharm   # PyCharm
+ezl create feature-x --mode ide --ide code      # VS Code
+ezl create feature-x --mode ide --ide cursor    # Cursor
+ezl create feature-x --mode ide --ide pycharm   # PyCharm
 
 # Auto-detect IDE (tries: code, cursor, pycharm, subl, atom)
-ez-leaf create feature-x --mode ide
+ezl create feature-x --mode ide
 ```
 
 ## Examples
@@ -131,32 +131,32 @@ ez-leaf create feature-x --mode ide
 
 ```bash
 # Create a new worktree for a feature branch and open in VS Code
-ez-leaf create feature/auth-system --mode ide --ide code
+ezl create feature/auth-system --mode ide --ide code
 
 # Work on the feature...
 cd ../myproject_feature/auth-system
 
 # When done, delete the worktree
-ez-leaf delete /path/to/myproject_feature/auth-system
+ezl delete /path/to/myproject_feature/auth-system
 ```
 
 ### Quick bug fix
 
 ```bash
 # Create worktree for hotfix
-ez-leaf create hotfix/urgent-bug
+ezl create hotfix/urgent-bug
 
 # Work on the fix in the new location
 cd ../myproject_hotfix/urgent-bug
 
 # After merging, clean up
-ez-leaf delete ../myproject_hotfix/urgent-bug
+ezl delete ../myproject_hotfix/urgent-bug
 ```
 
 ### Review all active worktrees
 
 ```bash
-ez-leaf list
+ezl list
 ```
 
 ## Requirements
@@ -204,7 +204,7 @@ ez-leaf/
 ## Troubleshooting
 
 ### "Not a git repository" error
-Make sure you're running `ez-leaf` from within a Git repository.
+Make sure you're running `ezl` from within a Git repository.
 
 ### IDE not launching
 Ensure the IDE executable is in your PATH:

@@ -18,7 +18,7 @@ dev = [
 ]
 
 [project.scripts]
-ez-leaf = "ez_leaf.cli:app"
+ezl = "ez_leaf.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["."]

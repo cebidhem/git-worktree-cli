@@ -1,8 +1,11 @@
 """Command-line interface for ez-leaf."""
 
 import sys
-import click
 from typing import Optional
+from enum import Enum
+
+import typer
+from typing_extensions import Annotated
 
 from . import __version__
 from .worktree import (
@@ -14,28 +17,37 @@ from .worktree import (
 from .launchers import LauncherError, handle_mode
 
 
-@click.group()
-@click.version_option(version=__version__, prog_name="ez-leaf")
-def main():
+class Mode(str, Enum):
+    """Operation modes for worktree creation."""
+    none = "none"
+    terminal = "terminal"
+    ide = "ide"
+
+
+app = typer.Typer(help="ez-leaf: A lightweight Python script to simplify Git worktree management.")
+
+
+def version_callback(value: bool):
+    """Print version and exit."""
+    if value:
+        typer.echo(f"ez-leaf version {__version__}")
+        raise typer.Exit()
+
+
+@app.callback()
+def main(
+    version: Annotated[Optional[bool], typer.Option("--version", callback=version_callback, help="Show version and exit.")] = None,
+):
     """ez-leaf: A lightweight Python script to simplify Git worktree management."""
     pass
 
 
-@main.command()
-@click.argument("branch")
-@click.option(
-    "--mode",
-    type=click.Choice(["none", "terminal", "ide"], case_sensitive=False),
-    default="none",
-    help="Operation mode after creating worktree (default: none)."
-)
-@click.option(
-    "--ide",
-    type=str,
-    default=None,
-    help="IDE executable name (e.g., code, pycharm, cursor). Used when mode=ide."
-)
-def create(branch: str, mode: str, ide: Optional[str]):
+@app.command()
+def create(
+    branch: Annotated[str, typer.Argument(help="Branch name to create worktree for")],
+    mode: Annotated[Mode, typer.Option(help="Operation mode after creating worktree")] = Mode.none,
+    ide: Annotated[Optional[str], typer.Option(help="IDE executable name (e.g., code, pycharm, cursor). Used when mode=ide.")] = None,
+):
     """Create a new git worktree for BRANCH.
 
     The worktree will be created at: ../<root_folder_name>_<branch_name>
@@ -60,47 +72,43 @@ def create(branch: str, mode: str, ide: Optional[str]):
     """
     try:
         worktree_path = create_worktree(branch)
-        handle_mode(mode, worktree_path, ide)
+        handle_mode(mode.value, worktree_path, ide)
     except (WorktreeError, LauncherError) as e:
-        click.echo(f"Error: {e}", err=True)
-        sys.exit(1)
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=1)
 
 
-@main.command()
+@app.command()
 def list():
     """List all git worktrees in the repository."""
     try:
         worktrees = list_worktrees()
 
         if not worktrees:
-            click.echo("No worktrees found.")
+            typer.echo("No worktrees found.")
             return
 
         # Print header
-        click.echo(f"{'PATH':<50} {'BRANCH':<30} {'COMMIT':<10}")
-        click.echo("-" * 90)
+        typer.echo(f"{'PATH':<50} {'BRANCH':<30} {'COMMIT':<10}")
+        typer.echo("-" * 90)
 
         # Print each worktree
         for wt in worktrees:
             path = wt.get('path', 'N/A')
             branch = wt.get('branch', 'N/A')
             commit = wt.get('commit', 'N/A')
-            click.echo(f"{path:<50} {branch:<30} {commit:<10}")
+            typer.echo(f"{path:<50} {branch:<30} {commit:<10}")
 
     except WorktreeError as e:
-        click.echo(f"Error: {e}", err=True)
-        sys.exit(1)
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=1)
 
 
-@main.command()
-@click.argument("path")
-@click.option(
-    "--force",
-    "-f",
-    is_flag=True,
-    help="Force deletion even with uncommitted changes."
-)
-def delete(path: str, force: bool):
+@app.command()
+def delete(
+    path: Annotated[str, typer.Argument(help="Path to the worktree to delete")],
+    force: Annotated[bool, typer.Option("--force", "-f", help="Force deletion even with uncommitted changes")] = False,
+):
     """Delete a git worktree at PATH.
 
     Examples:
@@ -115,11 +123,11 @@ def delete(path: str, force: bool):
     """
     try:
         delete_worktree(path, force)
-        click.echo(f"Worktree deleted: {path}")
+        typer.echo(f"Worktree deleted: {path}")
     except WorktreeError as e:
-        click.echo(f"Error: {e}", err=True)
-        sys.exit(1)
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":
-    main()
+    app()

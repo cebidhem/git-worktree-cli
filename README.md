@@ -18,6 +18,18 @@ A lightweight Python CLI tool to simplify Git worktree management.
 
 ## Installation
 
+### Prerequisites
+
+Make sure you have [uv](https://docs.astral.sh/uv/) installed:
+
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Or with Homebrew
+brew install uv
+```
+
 ### From Source
 
 ```bash
@@ -25,11 +37,22 @@ A lightweight Python CLI tool to simplify Git worktree management.
 git clone https://github.com/yourusername/git-worktree-cli.git
 cd git-worktree-cli
 
-# Install in development mode
-pip install -e .
+# Install dependencies
+uv sync
 
-# Or install with dev dependencies (for testing)
-pip install -e ".[dev]"
+# Activate the virtual environment
+source .venv/bin/activate  # On Unix/macOS
+# .venv\Scripts\activate   # On Windows
+```
+
+### Global Installation
+
+```bash
+# Install globally with uv
+uv tool install git-worktree-cli
+
+# Or install from local source
+uv tool install .
 ```
 
 ### Verify Installation
@@ -167,20 +190,41 @@ wt list
 
 ## Development
 
+### Setup Development Environment
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/git-worktree-cli.git
+cd git-worktree-cli
+
+# Install all dependencies (including dev)
+uv sync --all-extras
+
+# Activate virtual environment
+source .venv/bin/activate
+```
+
 ### Running Tests
 
 ```bash
-# Install with dev dependencies
-pip install -e ".[dev]"
-
 # Run all tests
-pytest
+uv run pytest
 
 # Run with verbose output
-pytest -v
+uv run pytest -v
 
 # Run specific test file
-pytest tests/test_worktree.py -v
+uv run pytest tests/test_worktree.py -v
+```
+
+### Code Quality
+
+```bash
+# Format code with black
+uv run black wt/ tests/
+
+# Lint with pylint
+uv run pylint wt/ tests/ --disable=C0114,C0115,C0116,R0903 --max-line-length=120
 ```
 
 ### Project Structure

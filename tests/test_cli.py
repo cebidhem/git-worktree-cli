@@ -1,5 +1,6 @@
 """Tests for CLI commands."""
 
+import re
 from pathlib import Path
 
 from typer.testing import CliRunner
@@ -7,6 +8,12 @@ from typer.testing import CliRunner
 from wt.cli import app
 from wt.worktree import WorktreeError
 from wt.launchers import LauncherError
+
+
+def strip_ansi(text):
+    """Remove ANSI escape codes from text."""
+    ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
+    return ansi_escape.sub("", text)
 
 
 runner = CliRunner()
@@ -213,11 +220,12 @@ class TestCLIHelp:
     def test_create_help(self):
         """Test create command help."""
         result = runner.invoke(app, ["create", "--help"])
+        output = strip_ansi(result.stdout)
 
         assert result.exit_code == 0
-        assert "Create a new git worktree" in result.stdout
-        assert "--mode" in result.stdout
-        assert "--ide" in result.stdout
+        assert "Create a new git worktree" in output
+        assert "--mode" in output
+        assert "--ide" in output
 
     def test_list_help(self):
         """Test list command help."""
@@ -229,7 +237,8 @@ class TestCLIHelp:
     def test_delete_help(self):
         """Test delete command help."""
         result = runner.invoke(app, ["delete", "--help"])
+        output = strip_ansi(result.stdout)
 
         assert result.exit_code == 0
-        assert "Delete a git worktree" in result.stdout
-        assert "--force" in result.stdout
+        assert "Delete a git worktree" in output
+        assert "--force" in output

@@ -89,7 +89,7 @@ def _launch_iterm2(worktree_path: Path, command: Optional[str] = None) -> None:
     quoted_path = shlex.quote(str(worktree_path))
     commands = [f"cd {quoted_path}"]
     if command:
-        # Command is "claude" which is safe, but quote it anyway for consistency
+        # Quote command to ensure security and prevent shell injection
         commands.append(shlex.quote(command))
 
     # Join commands and escape for AppleScript string context
@@ -148,7 +148,7 @@ def _launch_linux_terminal(worktree_path: Path, command: Optional[str] = None) -
         terminals = [
             ("gnome-terminal", ["--tab", "--", "bash", "-c", bash_cmd]),
             ("konsole", ["--new-tab", "-e", "bash", "-c", bash_cmd]),
-            ("xfce4-terminal", ["--tab", "-e", f"bash -c {shlex.quote(bash_cmd)}"]),
+            ("xfce4-terminal", ["--tab", "-e", "bash", "-c", bash_cmd]),
             ("xterm", ["-e", "bash", "-c", bash_cmd]),
         ]
 

@@ -89,8 +89,9 @@ def _launch_iterm2(worktree_path: Path, command: Optional[str] = None) -> None:
     quoted_path = shlex.quote(str(worktree_path))
     commands = [f"cd {quoted_path}"]
     if command:
-        # Quote command to ensure security and prevent shell injection
-        commands.append(shlex.quote(command))
+        # Don't quote command here - iTerm's "write text" types literally into shell
+        # The command value is controlled by our code (e.g., "claude"), not user input
+        commands.append(command)
 
     # Join commands and escape for AppleScript string context
     shell_command = "; ".join(commands)

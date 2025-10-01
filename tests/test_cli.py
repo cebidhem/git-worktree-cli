@@ -32,46 +32,57 @@ class TestCLIVersion:
 class TestCLICreate:
     """Tests for create command."""
 
-    def test_create_worktree_default_mode(self, mocker):
-        """Test creating worktree with default mode."""
+    def test_create_worktree_default(self, mocker):
+        """Test creating worktree without any flags."""
         mock_create = mocker.patch(
             "wt.cli.create_worktree", return_value=Path("/path/to/worktree")
         )
-        mock_handle_mode = mocker.patch("wt.cli.handle_mode")
+        mock_print = mocker.patch("builtins.print")
 
         result = runner.invoke(app, ["create", "feature-x"])
 
         assert result.exit_code == 0
         mock_create.assert_called_once_with("feature-x")
-        mock_handle_mode.assert_called_once_with(
-            "none", Path("/path/to/worktree"), None
-        )
+        mock_print.assert_called_once_with("Worktree created at: /path/to/worktree")
 
-    def test_create_worktree_terminal_mode(self, mocker):
-        """Test creating worktree with terminal mode."""
+    def test_create_worktree_with_ide(self, mocker):
+        """Test creating worktree with --ide flag."""
         mocker.patch("wt.cli.create_worktree", return_value=Path("/path/to/worktree"))
-        mock_handle_mode = mocker.patch("wt.cli.handle_mode")
+        mock_launch_ide = mocker.patch("wt.cli.launch_ide")
 
-        result = runner.invoke(app, ["create", "feature-x", "--mode", "terminal"])
+        result = runner.invoke(app, ["create", "feature-x", "--ide", "code"])
 
         assert result.exit_code == 0
-        mock_handle_mode.assert_called_once_with(
-            "terminal", Path("/path/to/worktree"), None
-        )
+        mock_launch_ide.assert_called_once_with(Path("/path/to/worktree"), "code")
 
-    def test_create_worktree_ide_mode(self, mocker):
-        """Test creating worktree with IDE mode."""
+    def test_create_worktree_with_claude(self, mocker):
+        """Test creating worktree with --claude flag."""
         mocker.patch("wt.cli.create_worktree", return_value=Path("/path/to/worktree"))
-        mock_handle_mode = mocker.patch("wt.cli.handle_mode")
+        mock_launch_claude = mocker.patch("wt.cli.launch_claude")
+
+        result = runner.invoke(app, ["create", "feature-x", "--claude"])
+
+        assert result.exit_code == 0
+        mock_launch_claude.assert_called_once_with(Path("/path/to/worktree"))
+
+    def test_create_worktree_ide_and_claude_exclusive(self, mocker):
+        """Test that --ide and --claude are mutually exclusive."""
+        mock_echo = mocker.patch("typer.echo")
+        mocker.patch("wt.cli.create_worktree", return_value=Path("/path/to/worktree"))
 
         result = runner.invoke(
-            app, ["create", "feature-x", "--mode", "ide", "--ide", "code"]
+            app, ["create", "feature-x", "--ide", "code", "--claude"]
         )
 
-        assert result.exit_code == 0
-        mock_handle_mode.assert_called_once_with(
-            "ide", Path("/path/to/worktree"), "code"
-        )
+        assert result.exit_code == 1
+        # Verify error message was echoed
+        mock_echo.assert_called()
+        error_call = [
+            call
+            for call in mock_echo.call_args_list
+            if call.args and "mutually exclusive" in call.args[0]
+        ]
+        assert len(error_call) > 0
 
     def test_create_worktree_error(self, mocker):
         """Test creating worktree when WorktreeError occurs."""
@@ -86,7 +97,7 @@ class TestCLICreate:
         error_call = [
             call
             for call in mock_echo.call_args_list
-            if "Error: Test error" in str(call)
+            if call.args and "Error: Test error" in call.args[0]
         ]
         assert len(error_call) > 0
 
@@ -94,9 +105,9 @@ class TestCLICreate:
         """Test creating worktree when LauncherError occurs."""
         mock_echo = mocker.patch("typer.echo")
         mocker.patch("wt.cli.create_worktree", return_value=Path("/path/to/worktree"))
-        mocker.patch("wt.cli.handle_mode", side_effect=LauncherError("Launcher error"))
+        mocker.patch("wt.cli.launch_ide", side_effect=LauncherError("Launcher error"))
 
-        result = runner.invoke(app, ["create", "feature-x", "--mode", "ide"])
+        result = runner.invoke(app, ["create", "feature-x", "--ide", "code"])
 
         assert result.exit_code == 1
         # Verify error message was echoed
@@ -104,7 +115,7 @@ class TestCLICreate:
         error_call = [
             call
             for call in mock_echo.call_args_list
-            if "Error: Launcher error" in str(call)
+            if call.args and "Error: Launcher error" in call.args[0]
         ]
         assert len(error_call) > 0
 
@@ -157,7 +168,7 @@ class TestCLIList:
         error_call = [
             call
             for call in mock_echo.call_args_list
-            if "Error: List error" in str(call)
+            if call.args and "Error: List error" in call.args[0]
         ]
         assert len(error_call) > 0
 
@@ -199,7 +210,7 @@ class TestCLIDelete:
         error_call = [
             call
             for call in mock_echo.call_args_list
-            if "Error: Delete error" in str(call)
+            if call.args and "Error: Delete error" in call.args[0]
         ]
         assert len(error_call) > 0
 
@@ -224,8 +235,8 @@ class TestCLIHelp:
 
         assert result.exit_code == 0
         assert "Create a new git worktree" in output
-        assert "--mode" in output
         assert "--ide" in output
+        assert "--claude" in output
 
     def test_list_help(self):
         """Test list command help."""

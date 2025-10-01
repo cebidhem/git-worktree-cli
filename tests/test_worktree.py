@@ -121,6 +121,7 @@ class TestCreateWorktree:
             "wt.worktree.branch_exists", return_value=False
         )
         mock_run = mocker.patch("subprocess.run", return_value=Mock(returncode=0))
+        mock_copy_claude = mocker.patch("wt.worktree.copy_claude_settings")
 
         result = create_worktree("feature-x")
 
@@ -132,6 +133,7 @@ class TestCreateWorktree:
         assert args[:3] == ["git", "worktree", "add"]
         assert "-b" in args
         assert "feature-x" in args
+        mock_copy_claude.assert_called_once()
 
     def test_create_worktree_existing_branch(self, mocker):
         """Test creating worktree with an existing branch."""
@@ -142,6 +144,7 @@ class TestCreateWorktree:
         )
         mocker.patch("wt.worktree.branch_exists", return_value=True)
         mock_run = mocker.patch("subprocess.run", return_value=Mock(returncode=0))
+        mocker.patch("wt.worktree.copy_claude_settings")
 
         result = create_worktree("main")
 

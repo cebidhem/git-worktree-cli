@@ -1,5 +1,6 @@
 """Core git worktree operations."""
 
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Optional
@@ -109,6 +110,26 @@ def branch_exists(branch: str) -> bool:
             return False
 
 
+def copy_claude_settings(worktree_path: Path) -> None:
+    """Copy Claude settings from repository root to new worktree.
+
+    Copies .claude/settings.local.json if it exists in the repository root.
+
+    Args:
+        worktree_path: The path to the worktree.
+    """
+    repo_root = get_repo_root()
+    source_settings = repo_root / ".claude" / "settings.local.json"
+
+    if source_settings.exists():
+        target_claude_dir = worktree_path / ".claude"
+        target_claude_dir.mkdir(parents=True, exist_ok=True)
+
+        target_settings = target_claude_dir / "settings.local.json"
+        shutil.copy2(source_settings, target_settings)
+        print(f"Copied Claude settings to {target_settings}")
+
+
 def create_worktree(branch: str, path: Optional[Path] = None) -> Path:
     """Create a new git worktree.
 
@@ -148,6 +169,9 @@ def create_worktree(branch: str, path: Optional[Path] = None) -> Path:
                 capture_output=True,
                 text=True,
             )
+
+        # Copy Claude settings if they exist
+        copy_claude_settings(path)
 
         return path.absolute()
     except subprocess.CalledProcessError as e:

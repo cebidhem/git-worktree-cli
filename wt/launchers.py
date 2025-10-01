@@ -1,6 +1,7 @@
 """Launchers for opening worktrees in IDEs or terminal."""
 
 import platform
+import shlex
 import subprocess
 from pathlib import Path
 from typing import Optional
@@ -84,10 +85,17 @@ def _launch_iterm2(worktree_path: Path, command: Optional[str] = None) -> None:
     Raises:
         LauncherError: If launching iTerm2 fails.
     """
-    # Build commands to execute
-    commands = [f"cd {worktree_path}"]
+    # Build commands to execute with proper shell escaping
+    quoted_path = shlex.quote(str(worktree_path))
+    commands = [f"cd {quoted_path}"]
     if command:
-        commands.append(command)
+        # Command is "claude" which is safe, but quote it anyway for consistency
+        commands.append(shlex.quote(command))
+
+    # Join commands and escape for AppleScript string context
+    shell_command = "; ".join(commands)
+    # Escape backslashes and quotes for AppleScript string
+    escaped_command = shell_command.replace("\\", "\\\\").replace('"', '\\"')
 
     # AppleScript to open a new iTerm2 tab and execute commands
     applescript = f"""
@@ -95,7 +103,7 @@ def _launch_iterm2(worktree_path: Path, command: Optional[str] = None) -> None:
         tell current window
             create tab with default profile
             tell current session
-                write text "{'; '.join(commands)}"
+                write text "{escaped_command}"
             end tell
         end tell
     end tell
@@ -121,30 +129,27 @@ def _launch_linux_terminal(worktree_path: Path, command: Optional[str] = None) -
     Raises:
         LauncherError: If launching terminal fails.
     """
+    # Properly escape path and command for shell
+    quoted_path = shlex.quote(str(worktree_path))
+
     # Try common Linux terminals in order of preference
     terminals = [
         ("gnome-terminal", ["--tab", "--working-directory", str(worktree_path)]),
         ("konsole", ["--new-tab", "--workdir", str(worktree_path)]),
         ("xfce4-terminal", ["--tab", "--working-directory", str(worktree_path)]),
-        ("xterm", ["-e", f"cd {worktree_path} && bash"]),
+        ("xterm", ["-e", "bash", "-c", f"cd {quoted_path} && bash"]),
     ]
 
     if command:
         # If command is provided, we need to execute it after cd
+        quoted_command = shlex.quote(command)
+        bash_cmd = f"cd {quoted_path} && {quoted_command}"
+
         terminals = [
-            (
-                "gnome-terminal",
-                ["--tab", "--", "bash", "-c", f"cd {worktree_path} && {command}"],
-            ),
-            (
-                "konsole",
-                ["--new-tab", "-e", "bash", "-c", f"cd {worktree_path} && {command}"],
-            ),
-            (
-                "xfce4-terminal",
-                ["--tab", "-e", f"bash -c 'cd {worktree_path} && {command}'"],
-            ),
-            ("xterm", ["-e", f"cd {worktree_path} && {command}"]),
+            ("gnome-terminal", ["--tab", "--", "bash", "-c", bash_cmd]),
+            ("konsole", ["--new-tab", "-e", "bash", "-c", bash_cmd]),
+            ("xfce4-terminal", ["--tab", "-e", f"bash -c {shlex.quote(bash_cmd)}"]),
+            ("xterm", ["-e", "bash", "-c", bash_cmd]),
         ]
 
     for terminal, args in terminals:

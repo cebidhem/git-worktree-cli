@@ -1,1 +1,1 @@
-"""Tests for ez-leaf."""
+"""Tests for git-worktree-cli."""

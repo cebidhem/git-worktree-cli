@@ -24,7 +24,7 @@ def check_git_repo() -> None:
         )
     except subprocess.CalledProcessError as e:
         raise WorktreeError(
-            "Not a git repository. Please run ez-leaf from within a git repository."
+            "Not a git repository. Please run git-worktree-cli from within a git repository."
         ) from e
 
 

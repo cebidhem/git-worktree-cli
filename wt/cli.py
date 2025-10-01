@@ -69,19 +69,19 @@ def create(
 
         \b
         # Create worktree only
-        ez-leaf create feature-x
+        wt create feature-x
 
         \b
         # Create and open in terminal
-        ez-leaf create feature-x --mode terminal
+        wt create feature-x --mode terminal
 
         \b
         # Create and open in VS Code
-        ez-leaf create feature-x --mode ide --ide code
+        wt create feature-x --mode ide --ide code
 
         \b
         # Create and open in default IDE
-        ez-leaf create feature-x --mode ide
+        wt create feature-x --mode ide
     """
     try:
         worktree_path = create_worktree(branch)
@@ -133,11 +133,11 @@ def delete(
 
         \b
         # Delete a worktree
-        ez-leaf delete ../myproject_feature-x
+        wt delete ../myproject_feature-x
 
         \b
         # Force delete worktree with uncommitted changes
-        ez-leaf delete ../myproject_feature-x --force
+        wt delete ../myproject_feature-x --force
     """
     try:
         delete_worktree(path, force)

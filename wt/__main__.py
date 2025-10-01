@@ -1,4 +1,4 @@
-"""Entry point for running ez-leaf as a module."""
+"""Entry point for running git-worktree-cli as a module."""
 
 from .cli import app
 

@@ -268,6 +268,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 [Add your license here]
 
-## Author
 
-[Add your name/info here]
+## Acknowledgments
+
+This project was a way to use Claude Code for a real use-case, which was inspired by [John Lindquists' worktree-cli](https://github.com/johnlindquist/worktree-cli).

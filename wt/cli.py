@@ -128,27 +128,7 @@ def list_cmd():
 @app.command(name="ls", hidden=True)
 def ls():
     """Alias for list command."""
-    try:
-        worktrees = list_worktrees()
-
-        if not worktrees:
-            typer.echo("No worktrees found.")
-            return
-
-        # Print header
-        typer.echo(f"{'PATH':<50} {'BRANCH':<30} {'COMMIT':<10}")
-        typer.echo("-" * 90)
-
-        # Print each worktree
-        for wt in worktrees:
-            path = wt.get("path", "N/A")
-            branch = wt.get("branch", "N/A")
-            commit = wt.get("commit", "N/A")
-            typer.echo(f"{path:<50} {branch:<30} {commit:<10}")
-
-    except WorktreeError as e:
-        typer.echo(f"Error: {e}", err=True)
-        raise typer.Exit(code=1)
+    list_cmd()
 
 
 @app.command(name="remove")
@@ -193,12 +173,7 @@ def rm(
     ] = False,
 ):
     """Alias for remove command."""
-    try:
-        delete_worktree(path, force)
-        typer.echo(f"Worktree removed: {path}")
-    except WorktreeError as e:
-        typer.echo(f"Error: {e}", err=True)
-        raise typer.Exit(code=1)
+    remove(path, force)
 
 
 if __name__ == "__main__":

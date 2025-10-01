@@ -53,7 +53,7 @@ def launch_ide(worktree_path: Path, ide_executable: Optional[str] = None) -> Non
 def launch_terminal(worktree_path: Path) -> None:
     """Launch a terminal in the worktree directory.
 
-    Currently supports iTerm2 on macOS.
+    Supports iTerm2 on macOS and common terminals on Linux.
 
     Args:
         worktree_path: The path to the worktree.
@@ -65,29 +65,37 @@ def launch_terminal(worktree_path: Path) -> None:
 
     if system == "Darwin":  # macOS
         _launch_iterm2(worktree_path)
+    elif system == "Linux":
+        _launch_linux_terminal(worktree_path)
     else:
         raise LauncherError(
             f"Terminal launching is not supported on {system}. "
-            f"Currently only macOS (iTerm2) is supported."
+            f"Currently only macOS and Linux are supported."
         )
 
 
-def _launch_iterm2(worktree_path: Path) -> None:
+def _launch_iterm2(worktree_path: Path, command: Optional[str] = None) -> None:
     """Launch a new iTerm2 tab in the worktree directory.
 
     Args:
         worktree_path: The path to the worktree.
+        command: Optional command to run after cd. If None, just opens terminal.
 
     Raises:
         LauncherError: If launching iTerm2 fails.
     """
-    # AppleScript to open a new iTerm2 tab and cd to the worktree path
+    # Build commands to execute
+    commands = [f"cd {worktree_path}"]
+    if command:
+        commands.append(command)
+
+    # AppleScript to open a new iTerm2 tab and execute commands
     applescript = f"""
     tell application "iTerm"
         tell current window
             create tab with default profile
             tell current session
-                write text "cd {worktree_path}"
+                write text "{'; '.join(commands)}"
             end tell
         end tell
     end tell
@@ -97,9 +105,100 @@ def _launch_iterm2(worktree_path: Path) -> None:
         subprocess.run(
             ["osascript", "-e", applescript], check=True, capture_output=True, text=True
         )
-        print(f"Opened new iTerm2 tab at {worktree_path}")
+        action = "Started Claude session" if command else "Opened new iTerm2 tab"
+        print(f"{action} at {worktree_path}")
     except subprocess.CalledProcessError as e:
         raise LauncherError(f"Failed to launch iTerm2: {e.stderr}") from e
+
+
+def _launch_linux_terminal(worktree_path: Path, command: Optional[str] = None) -> None:
+    """Launch a new terminal tab/window in the worktree directory on Linux.
+
+    Args:
+        worktree_path: The path to the worktree.
+        command: Optional command to run after cd. If None, just opens terminal.
+
+    Raises:
+        LauncherError: If launching terminal fails.
+    """
+    # Try common Linux terminals in order of preference
+    terminals = [
+        ("gnome-terminal", ["--tab", "--working-directory", str(worktree_path)]),
+        ("konsole", ["--new-tab", "--workdir", str(worktree_path)]),
+        ("xfce4-terminal", ["--tab", "--working-directory", str(worktree_path)]),
+        ("xterm", ["-e", f"cd {worktree_path} && bash"]),
+    ]
+
+    if command:
+        # If command is provided, we need to execute it after cd
+        terminals = [
+            (
+                "gnome-terminal",
+                ["--tab", "--", "bash", "-c", f"cd {worktree_path} && {command}"],
+            ),
+            (
+                "konsole",
+                ["--new-tab", "-e", "bash", "-c", f"cd {worktree_path} && {command}"],
+            ),
+            (
+                "xfce4-terminal",
+                ["--tab", "-e", f"bash -c 'cd {worktree_path} && {command}'"],
+            ),
+            ("xterm", ["-e", f"cd {worktree_path} && {command}"]),
+        ]
+
+    for terminal, args in terminals:
+        if _command_exists(terminal):
+            try:
+                subprocess.run(
+                    [terminal] + args,
+                    check=True,
+                    capture_output=True,
+                )
+                action = (
+                    "Started Claude session" if command else "Opened new terminal tab"
+                )
+                print(f"{action} at {worktree_path}")
+                return
+            except subprocess.CalledProcessError:
+                continue
+
+    raise LauncherError(
+        "No supported terminal found. "
+        "Please install gnome-terminal, konsole, xfce4-terminal, or xterm."
+    )
+
+
+def launch_claude(worktree_path: Path) -> None:
+    """Launch a Claude session in the worktree directory.
+
+    Opens a new terminal tab/window and starts a Claude session.
+    Supports iTerm2 on macOS and common terminals on Linux.
+
+    Args:
+        worktree_path: The path to the worktree.
+
+    Raises:
+        LauncherError: If launching Claude fails or platform is not supported.
+    """
+    # Check if claude command exists
+    if not _command_exists("claude"):
+        raise LauncherError(
+            "Claude CLI not found. "
+            "Please install it from https://github.com/anthropics/claude-code"
+        )
+
+    system = platform.system()
+
+    if system == "Darwin":  # macOS
+        _launch_iterm2(worktree_path, command="claude")
+    elif system == "Linux":
+        _launch_linux_terminal(worktree_path, command="claude")
+    else:
+        raise LauncherError(
+            f"Claude launching is not supported on {system}. "
+            f"Currently only macOS and Linux are supported."
+        )
 
 
 def _command_exists(command: str) -> bool:
@@ -116,27 +215,3 @@ def _command_exists(command: str) -> bool:
         return True
     except subprocess.CalledProcessError:
         return False
-
-
-def handle_mode(
-    mode: str, worktree_path: Path, ide_executable: Optional[str] = None
-) -> None:
-    """Handle the specified mode after worktree creation.
-
-    Args:
-        mode: The mode ('none', 'terminal', or 'ide').
-        worktree_path: The path to the created worktree.
-        ide_executable: Optional IDE executable name (used when mode='ide').
-
-    Raises:
-        LauncherError: If mode handling fails.
-    """
-    if mode == "none":
-        # Do nothing, just print the path
-        print(f"Worktree created at: {worktree_path}")
-    elif mode == "terminal":
-        launch_terminal(worktree_path)
-    elif mode == "ide":
-        launch_ide(worktree_path, ide_executable)
-    else:
-        raise LauncherError(f"Unknown mode: {mode}")

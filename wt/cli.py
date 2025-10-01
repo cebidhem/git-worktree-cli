@@ -1,7 +1,6 @@
 """Command-line interface for git-worktree-cli."""
 
 from typing import Optional
-from enum import Enum
 
 import typer
 from typing_extensions import Annotated
@@ -13,15 +12,7 @@ from .worktree import (
     list_worktrees,
     delete_worktree,
 )
-from .launchers import LauncherError, handle_mode
-
-
-class Mode(str, Enum):
-    """Operation modes for worktree creation."""
-
-    NONE = "none"
-    TERMINAL = "terminal"
-    IDE = "ide"
+from .launchers import LauncherError, launch_ide, launch_claude
 
 
 app = typer.Typer(
@@ -51,15 +42,18 @@ def main(
 @app.command()
 def create(
     branch: Annotated[str, typer.Argument(help="Branch name to create worktree for")],
-    mode: Annotated[
-        Mode, typer.Option(help="Operation mode after creating worktree")
-    ] = Mode.NONE,
     ide: Annotated[
         Optional[str],
         typer.Option(
-            help="IDE executable name (e.g., code, pycharm, cursor). Used when mode=ide."
+            help="IDE executable name (e.g., code, pycharm, cursor). Opens worktree in IDE."
         ),
     ] = None,
+    claude: Annotated[
+        bool,
+        typer.Option(
+            help="Start a Claude session in the new worktree. Mutually exclusive with --ide."
+        ),
+    ] = False,
 ):
     """Create a new git worktree for BRANCH.
 
@@ -72,20 +66,33 @@ def create(
         wt create feature-x
 
         \b
-        # Create and open in terminal
-        wt create feature-x --mode terminal
+        # Create and open in VS Code
+        wt create feature-x --ide code
 
         \b
-        # Create and open in VS Code
-        wt create feature-x --mode ide --ide code
+        # Create and start Claude session
+        wt create feature-x --claude
 
         \b
         # Create and open in default IDE
-        wt create feature-x --mode ide
+        wt create feature-x --ide
     """
+    # Check for mutually exclusive options
+    if ide and claude:
+        typer.echo("Error: --ide and --claude are mutually exclusive.", err=True)
+        raise typer.Exit(code=1)
+
     try:
         worktree_path = create_worktree(branch)
-        handle_mode(mode.value, worktree_path, ide)
+
+        # Handle post-creation actions
+        if claude:
+            launch_claude(worktree_path)
+        elif ide:
+            launch_ide(worktree_path, ide)
+        else:
+            print(f"Worktree created at: {worktree_path}")
+
     except (WorktreeError, LauncherError) as e:
         typer.echo(f"Error: {e}", err=True)
         raise typer.Exit(code=1)

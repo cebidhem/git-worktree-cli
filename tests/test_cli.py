@@ -80,7 +80,7 @@ class TestCLICreate:
         error_call = [
             call
             for call in mock_echo.call_args_list
-            if "mutually exclusive" in str(call)
+            if call.args and "mutually exclusive" in call.args[0]
         ]
         assert len(error_call) > 0
 
@@ -97,7 +97,7 @@ class TestCLICreate:
         error_call = [
             call
             for call in mock_echo.call_args_list
-            if "Error: Test error" in str(call)
+            if call.args and "Error: Test error" in call.args[0]
         ]
         assert len(error_call) > 0
 
@@ -115,7 +115,7 @@ class TestCLICreate:
         error_call = [
             call
             for call in mock_echo.call_args_list
-            if "Error: Launcher error" in str(call)
+            if call.args and "Error: Launcher error" in call.args[0]
         ]
         assert len(error_call) > 0
 
@@ -168,7 +168,7 @@ class TestCLIList:
         error_call = [
             call
             for call in mock_echo.call_args_list
-            if "Error: List error" in str(call)
+            if call.args and "Error: List error" in call.args[0]
         ]
         assert len(error_call) > 0
 
@@ -210,7 +210,7 @@ class TestCLIDelete:
         error_call = [
             call
             for call in mock_echo.call_args_list
-            if "Error: Delete error" in str(call)
+            if call.args and "Error: Delete error" in call.args[0]
         ]
         assert len(error_call) > 0
 

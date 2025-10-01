@@ -39,9 +39,9 @@ def main(
     """git-worktree-cli: A lightweight Python CLI tool to simplify Git worktree management."""
 
 
-@app.command()
-def create(
-    branch: Annotated[str, typer.Argument(help="Branch name to create worktree for")],
+@app.command(name="add")
+def add(
+    branch: Annotated[str, typer.Argument(help="Branch name to add worktree for")],
     ide: Annotated[
         Optional[str],
         typer.Option(
@@ -55,27 +55,27 @@ def create(
         ),
     ] = False,
 ):
-    """Create a new git worktree for BRANCH.
+    """Add a new git worktree for BRANCH.
 
     The worktree will be created at: ../<root_folder_name>_<branch_name>
 
     Examples:
 
         \b
-        # Create worktree only
-        wt create feature-x
+        # Add worktree only
+        wt add feature-x
 
         \b
-        # Create and open in VS Code
-        wt create feature-x --ide code
+        # Add and open in VS Code
+        wt add feature-x --ide code
 
         \b
-        # Create and start Claude session
-        wt create feature-x --claude
+        # Add and start Claude session
+        wt add feature-x --claude
 
         \b
-        # Create and open in default IDE
-        wt create feature-x --ide
+        # Add and open in default IDE
+        wt add feature-x --ide
     """
     # Check for mutually exclusive options
     if ide and claude:
@@ -124,34 +124,56 @@ def list_cmd():
         raise typer.Exit(code=1)
 
 
-@app.command()
-def delete(
-    path: Annotated[str, typer.Argument(help="Path to the worktree to delete")],
+# Alias: ls -> list
+@app.command(name="ls", hidden=True)
+def ls():
+    """Alias for list command."""
+    list_cmd()
+
+
+@app.command(name="remove")
+def remove(
+    path: Annotated[str, typer.Argument(help="Path to the worktree to remove")],
     force: Annotated[
         bool,
         typer.Option(
-            "--force", "-f", help="Force deletion even with uncommitted changes"
+            "--force", "-f", help="Force removal even with uncommitted changes"
         ),
     ] = False,
 ):
-    """Delete a git worktree at PATH.
+    """Remove a git worktree at PATH.
 
     Examples:
 
         \b
-        # Delete a worktree
-        wt delete ../myproject_feature-x
+        # Remove a worktree
+        wt remove ../myproject_feature-x
 
         \b
-        # Force delete worktree with uncommitted changes
-        wt delete ../myproject_feature-x --force
+        # Force remove worktree with uncommitted changes
+        wt remove ../myproject_feature-x --force
     """
     try:
         delete_worktree(path, force)
-        typer.echo(f"Worktree deleted: {path}")
+        typer.echo(f"Worktree removed: {path}")
     except WorktreeError as e:
         typer.echo(f"Error: {e}", err=True)
         raise typer.Exit(code=1)
+
+
+# Alias: rm -> remove
+@app.command(name="rm", hidden=True)
+def rm(
+    path: Annotated[str, typer.Argument(help="Path to the worktree to remove")],
+    force: Annotated[
+        bool,
+        typer.Option(
+            "--force", "-f", help="Force removal even with uncommitted changes"
+        ),
+    ] = False,
+):
+    """Alias for remove command."""
+    remove(path, force)
 
 
 if __name__ == "__main__":

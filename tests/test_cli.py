@@ -29,50 +29,48 @@ class TestCLIVersion:
         assert "git-worktree-cli version" in result.stdout
 
 
-class TestCLICreate:
-    """Tests for create command."""
+class TestCLIAdd:
+    """Tests for add command."""
 
-    def test_create_worktree_default(self, mocker):
-        """Test creating worktree without any flags."""
+    def test_add_worktree_default(self, mocker):
+        """Test adding worktree without any flags."""
         mock_create = mocker.patch(
             "wt.cli.create_worktree", return_value=Path("/path/to/worktree")
         )
         mock_print = mocker.patch("builtins.print")
 
-        result = runner.invoke(app, ["create", "feature-x"])
+        result = runner.invoke(app, ["add", "feature-x"])
 
         assert result.exit_code == 0
         mock_create.assert_called_once_with("feature-x")
         mock_print.assert_called_once_with("Worktree created at: /path/to/worktree")
 
-    def test_create_worktree_with_ide(self, mocker):
-        """Test creating worktree with --ide flag."""
+    def test_add_worktree_with_ide(self, mocker):
+        """Test adding worktree with --ide flag."""
         mocker.patch("wt.cli.create_worktree", return_value=Path("/path/to/worktree"))
         mock_launch_ide = mocker.patch("wt.cli.launch_ide")
 
-        result = runner.invoke(app, ["create", "feature-x", "--ide", "code"])
+        result = runner.invoke(app, ["add", "feature-x", "--ide", "code"])
 
         assert result.exit_code == 0
         mock_launch_ide.assert_called_once_with(Path("/path/to/worktree"), "code")
 
-    def test_create_worktree_with_claude(self, mocker):
-        """Test creating worktree with --claude flag."""
+    def test_add_worktree_with_claude(self, mocker):
+        """Test adding worktree with --claude flag."""
         mocker.patch("wt.cli.create_worktree", return_value=Path("/path/to/worktree"))
         mock_launch_claude = mocker.patch("wt.cli.launch_claude")
 
-        result = runner.invoke(app, ["create", "feature-x", "--claude"])
+        result = runner.invoke(app, ["add", "feature-x", "--claude"])
 
         assert result.exit_code == 0
         mock_launch_claude.assert_called_once_with(Path("/path/to/worktree"))
 
-    def test_create_worktree_ide_and_claude_exclusive(self, mocker):
+    def test_add_worktree_ide_and_claude_exclusive(self, mocker):
         """Test that --ide and --claude are mutually exclusive."""
         mock_echo = mocker.patch("typer.echo")
         mocker.patch("wt.cli.create_worktree", return_value=Path("/path/to/worktree"))
 
-        result = runner.invoke(
-            app, ["create", "feature-x", "--ide", "code", "--claude"]
-        )
+        result = runner.invoke(app, ["add", "feature-x", "--ide", "code", "--claude"])
 
         assert result.exit_code == 1
         # Verify error message was echoed
@@ -84,12 +82,12 @@ class TestCLICreate:
         ]
         assert len(error_call) > 0
 
-    def test_create_worktree_error(self, mocker):
-        """Test creating worktree when WorktreeError occurs."""
+    def test_add_worktree_error(self, mocker):
+        """Test adding worktree when WorktreeError occurs."""
         mock_echo = mocker.patch("typer.echo")
         mocker.patch("wt.cli.create_worktree", side_effect=WorktreeError("Test error"))
 
-        result = runner.invoke(app, ["create", "feature-x"])
+        result = runner.invoke(app, ["add", "feature-x"])
 
         assert result.exit_code == 1
         # Verify error message was echoed
@@ -101,13 +99,13 @@ class TestCLICreate:
         ]
         assert len(error_call) > 0
 
-    def test_create_worktree_launcher_error(self, mocker):
-        """Test creating worktree when LauncherError occurs."""
+    def test_add_worktree_launcher_error(self, mocker):
+        """Test adding worktree when LauncherError occurs."""
         mock_echo = mocker.patch("typer.echo")
         mocker.patch("wt.cli.create_worktree", return_value=Path("/path/to/worktree"))
         mocker.patch("wt.cli.launch_ide", side_effect=LauncherError("Launcher error"))
 
-        result = runner.invoke(app, ["create", "feature-x", "--ide", "code"])
+        result = runner.invoke(app, ["add", "feature-x", "--ide", "code"])
 
         assert result.exit_code == 1
         # Verify error message was echoed
@@ -173,36 +171,36 @@ class TestCLIList:
         assert len(error_call) > 0
 
 
-class TestCLIDelete:
-    """Tests for delete command."""
+class TestCLIRemove:
+    """Tests for remove command."""
 
-    def test_delete_worktree(self, mocker):
-        """Test deleting worktree."""
+    def test_remove_worktree(self, mocker):
+        """Test removing worktree."""
         mock_delete = mocker.patch("wt.cli.delete_worktree")
 
-        result = runner.invoke(app, ["delete", "/path/to/worktree"])
+        result = runner.invoke(app, ["remove", "/path/to/worktree"])
 
         assert result.exit_code == 0
         mock_delete.assert_called_once_with("/path/to/worktree", False)
-        assert "Worktree deleted: /path/to/worktree" in result.stdout
+        assert "Worktree removed: /path/to/worktree" in result.stdout
 
-    def test_delete_worktree_force(self, mocker):
-        """Test deleting worktree with force flag."""
+    def test_remove_worktree_force(self, mocker):
+        """Test removing worktree with force flag."""
         mock_delete = mocker.patch("wt.cli.delete_worktree")
 
-        result = runner.invoke(app, ["delete", "/path/to/worktree", "--force"])
+        result = runner.invoke(app, ["remove", "/path/to/worktree", "--force"])
 
         assert result.exit_code == 0
         mock_delete.assert_called_once_with("/path/to/worktree", True)
 
-    def test_delete_worktree_error(self, mocker):
-        """Test deleting worktree when error occurs."""
+    def test_remove_worktree_error(self, mocker):
+        """Test removing worktree when error occurs."""
         mock_echo = mocker.patch("typer.echo")
         mocker.patch(
-            "wt.cli.delete_worktree", side_effect=WorktreeError("Delete error")
+            "wt.cli.delete_worktree", side_effect=WorktreeError("Remove error")
         )
 
-        result = runner.invoke(app, ["delete", "/path/to/worktree"])
+        result = runner.invoke(app, ["remove", "/path/to/worktree"])
 
         assert result.exit_code == 1
         # Verify error message was echoed
@@ -210,9 +208,19 @@ class TestCLIDelete:
         error_call = [
             call
             for call in mock_echo.call_args_list
-            if call.args and "Error: Delete error" in call.args[0]
+            if call.args and "Error: Remove error" in call.args[0]
         ]
         assert len(error_call) > 0
+
+    def test_rm_alias(self, mocker):
+        """Test rm alias for remove command."""
+        mock_delete = mocker.patch("wt.cli.delete_worktree")
+
+        result = runner.invoke(app, ["rm", "/path/to/worktree"])
+
+        assert result.exit_code == 0
+        mock_delete.assert_called_once_with("/path/to/worktree", False)
+        assert "Worktree removed: /path/to/worktree" in result.stdout
 
 
 class TestCLIHelp:
@@ -224,17 +232,17 @@ class TestCLIHelp:
 
         assert result.exit_code == 0
         assert "git-worktree-cli" in result.stdout
-        assert "create" in result.stdout
+        assert "add" in result.stdout
         assert "list" in result.stdout
-        assert "delete" in result.stdout
+        assert "remove" in result.stdout
 
-    def test_create_help(self):
-        """Test create command help."""
-        result = runner.invoke(app, ["create", "--help"])
+    def test_add_help(self):
+        """Test add command help."""
+        result = runner.invoke(app, ["add", "--help"])
         output = strip_ansi(result.stdout)
 
         assert result.exit_code == 0
-        assert "Create a new git worktree" in output
+        assert "Add a new git worktree" in output
         assert "--ide" in output
         assert "--claude" in output
 
@@ -245,11 +253,17 @@ class TestCLIHelp:
         assert result.exit_code == 0
         assert "List all git worktrees" in result.stdout
 
-    def test_delete_help(self):
-        """Test delete command help."""
-        result = runner.invoke(app, ["delete", "--help"])
+    def test_remove_help(self):
+        """Test remove command help."""
+        result = runner.invoke(app, ["remove", "--help"])
         output = strip_ansi(result.stdout)
 
         assert result.exit_code == 0
-        assert "Delete a git worktree" in output
+        assert "Remove a git worktree" in output
         assert "--force" in output
+
+    def test_ls_alias(self):
+        """Test ls alias for list command."""
+        result = runner.invoke(app, ["ls"])
+
+        assert result.exit_code == 0

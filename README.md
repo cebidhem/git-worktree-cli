@@ -4,15 +4,15 @@ A lightweight Python CLI tool to simplify Git worktree management.
 
 ## Overview
 
-`wt` makes working with Git worktrees effortless by providing an intuitive command-line interface for creating, listing, and deleting worktrees. It automatically generates consistent paths and can optionally open new worktrees in your IDE or terminal.
+`wt` makes working with Git worktrees effortless by providing an intuitive command-line interface for adding, listing, and removing worktrees. It automatically generates consistent paths and can optionally open new worktrees in your IDE or terminal.
 
 ## Features
 
-- **Simple Worktree Creation**: Create worktrees with automatic path generation
+- **Simple Worktree Creation**: Add worktrees with automatic path generation
 - **Smart Path Management**: Auto-generates paths as `../<root_folder_name>_<branch_name>`
 - **IDE Integration**: Open worktrees directly in your favorite IDE (VS Code, PyCharm, Cursor, etc.)
 - **Terminal Integration**: Launch new iTerm2 tabs on macOS pointing to your worktree
-- **Easy Management**: List and delete worktrees with simple commands
+- **Easy Management**: List and remove worktrees with simple commands
 - **Branch Handling**: Automatically creates new branches or checks out existing ones
 - **Cross-Platform**: Works on any system with Python 3.12+ and Git
 
@@ -63,23 +63,23 @@ wt --version
 
 ## Usage
 
-### Create Worktree
+### Add Worktree
 
-Create a new worktree for a branch:
+Add a new worktree for a branch:
 
 ```bash
-# Basic usage - creates worktree only
-wt create feature-x
+# Basic usage - adds worktree only
+wt add feature-x
 # Creates: ../git-worktree-cli_feature-x
 
-# Create and open in terminal (iTerm2 on macOS)
-wt create feature-y --mode terminal
+# Add and open in VS Code
+wt add feature-y --ide code
 
-# Create and open in VS Code
-wt create feature-z --mode ide --ide code
+# Add and start Claude session
+wt add feature-z --claude
 
-# Create and open in default IDE (auto-detects: code, cursor, pycharm, subl, atom)
-wt create feature-w --mode ide
+# Add and open in default IDE (auto-detects: code, cursor, pycharm, subl, atom)
+wt add feature-w --ide
 ```
 
 **Path Generation**: Worktrees are created at `../<root_folder_name>_<branch_name>`
@@ -92,6 +92,8 @@ Display all worktrees in the repository:
 
 ```bash
 wt list
+# Or use the alias:
+wt ls
 ```
 
 Example output:
@@ -102,84 +104,88 @@ PATH                                               BRANCH                       
 /Users/user/projects/myproject_feature-x           feature-x                      def5678
 ```
 
-### Delete Worktree
+### Remove Worktree
 
 Remove a worktree:
 
 ```bash
-# Delete a worktree
-wt delete /path/to/worktree
+# Remove a worktree
+wt remove /path/to/worktree
 
-# Force delete (even with uncommitted changes)
-wt delete /path/to/worktree --force
+# Or use the alias:
+wt rm /path/to/worktree
+
+# Force remove (even with uncommitted changes)
+wt remove /path/to/worktree --force
 ```
 
-## Modes
+## Post-Creation Actions
 
-The `create` command supports three modes via the `--mode` option:
+The `add` command supports optional flags to perform actions after creating the worktree:
 
-### `none` (default)
-Creates the worktree without any additional action.
+### Default (no flags)
+Adds the worktree without any additional action.
 
 ```bash
-wt create feature-x
+wt add feature-x
 ```
 
-### `terminal`
-Creates the worktree and opens a new terminal tab at that location.
-
-**Supported platforms:**
-- macOS: Opens new iTerm2 tab
-
-```bash
-ezl create feature-x --mode terminal
-```
-
-### `ide`
-Creates the worktree and opens it in an IDE.
+### `--ide`
+Adds the worktree and opens it in an IDE.
 
 ```bash
 # Specify IDE explicitly
-wt create feature-x --mode ide --ide code      # VS Code
-wt create feature-x --mode ide --ide cursor    # Cursor
-wt create feature-x --mode ide --ide pycharm   # PyCharm
+wt add feature-x --ide code      # VS Code
+wt add feature-x --ide cursor    # Cursor
+wt add feature-x --ide pycharm   # PyCharm
 
 # Auto-detect IDE (tries: code, cursor, pycharm, subl, atom)
-wt create feature-x --mode ide
+wt add feature-x --ide
 ```
+
+### `--claude`
+Adds the worktree and starts a Claude Code session.
+
+```bash
+wt add feature-x --claude
+```
+
+**Note**: `--ide` and `--claude` are mutually exclusive.
 
 ## Examples
 
 ### Working on a new feature
 
 ```bash
-# Create a new worktree for a feature branch and open in VS Code
-wt create feature/auth-system --mode ide --ide code
+# Add a new worktree for a feature branch and open in VS Code
+wt add feature/auth-system --ide code
 
 # Work on the feature...
 cd ../myproject_feature/auth-system
 
-# When done, delete the worktree
-wt delete /path/to/myproject_feature/auth-system
+# When done, remove the worktree
+wt rm /path/to/myproject_feature/auth-system
 ```
 
 ### Quick bug fix
 
 ```bash
-# Create worktree for hotfix
-wt create hotfix/urgent-bug
+# Add worktree for hotfix
+wt add hotfix/urgent-bug
 
 # Work on the fix in the new location
 cd ../myproject_hotfix/urgent-bug
 
 # After merging, clean up
-wt delete ../myproject_hotfix/urgent-bug
+wt remove ../myproject_hotfix/urgent-bug
 ```
 
 ### Review all active worktrees
 
 ```bash
 wt list
+# Or use the alias:
+wt ls
 ```
 
 ## Requirements
@@ -266,7 +272,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-[Add your license here]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 
 ## Acknowledgments
